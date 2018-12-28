@@ -1,0 +1,580 @@
+package br.com.area1.cg;
+
+import java.awt.BorderLayout;
+import java.awt.Button;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.GraphicsConfiguration;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.FileNotFoundException;
+import java.util.Random;
+
+import javax.media.j3d.Alpha;
+import javax.media.j3d.AmbientLight;
+import javax.media.j3d.Appearance;
+import javax.media.j3d.BoundingSphere;
+import javax.media.j3d.BranchGroup;
+import javax.media.j3d.Canvas3D;
+import javax.media.j3d.DirectionalLight;
+import javax.media.j3d.Locale;
+import javax.media.j3d.Material;
+import javax.media.j3d.Node;
+import javax.media.j3d.PhysicalBody;
+import javax.media.j3d.PhysicalEnvironment;
+import javax.media.j3d.PositionInterpolator;
+import javax.media.j3d.RotationInterpolator;
+import javax.media.j3d.Shape3D;
+import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
+import javax.media.j3d.View;
+import javax.media.j3d.ViewPlatform;
+import javax.media.j3d.VirtualUniverse;
+import javax.swing.Timer;
+import javax.vecmath.AxisAngle4d;
+import javax.vecmath.Color3f;
+import javax.vecmath.Point3d;
+import javax.vecmath.Vector3d;
+import javax.vecmath.Vector3f;
+
+import com.sun.j3d.loaders.IncorrectFormatException;
+import com.sun.j3d.loaders.ParsingErrorException;
+import com.sun.j3d.loaders.Scene;
+import com.sun.j3d.loaders.objectfile.ObjectFile;
+import com.sun.j3d.utils.geometry.Box;
+import com.sun.j3d.utils.geometry.Cone;
+import com.sun.j3d.utils.geometry.Cylinder;
+import com.sun.j3d.utils.geometry.Primitive;
+import com.sun.j3d.utils.geometry.Sphere;
+import com.sun.j3d.utils.geometry.Text2D;
+import com.sun.j3d.utils.image.TextureLoader;
+import com.sun.j3d.utils.universe.SimpleUniverse;
+
+import javafx.scene.layout.Background;
+
+/**
+ * Isso cria uma cena simples de primitivos. Constrói uma 'casa' circular com um
+ * "teto" cônico e depois cria três "árvores" compostas de cilindros e esferas.
+ * Tudo isso é colocado em um terreno feito de um cubo.
+ **
+ * @autor I.J.Palmer* @version 1.0 - 01/11/2018, 18:27
+ */
+public class SimpleCombine extends Frame implements ActionListener, Runnable {
+
+	Transform3D pos1 = new Transform3D();
+
+	private TransformGroup objTrans1;
+	private Transform3D trans = new Transform3D();
+	private float roboY = 3.5f;// 3.5f
+	private float roboX = 3.0f;// 3.0f
+	private float sign = 1.0f; // going up or down (subindo ou descendo)
+	private Timer timer;
+
+	private boolean paraNorte;
+	private boolean paraSul = true;
+	private boolean paraLeste;
+	private boolean paraOeste;
+	private boolean paraNoroeste;
+	private boolean paraNordeste;
+	private boolean paraSudoeste;
+	private boolean paraSudeste;
+
+	GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
+	protected Canvas3D myCanvas3D = new Canvas3D(config);
+	protected Button myButton = new Button("EXIT");
+	private Button go = new Button("Go");
+
+	/**
+	 * Esta função constrói o ramo de visão do gráfico de cena. Cria uma grupo de
+	 * ramificação e, em seguida, cria os elementos de visualização necessários para
+	 * fornecer um visão útil do nosso conteúdo.
+	 **
+	 * @param c Canvas3D que exibirá a exibição
+	 * @return BranchGroup que é a raiz dos elementos de visualização
+	 */
+	protected BranchGroup buildViewBranch(Canvas3D c) {
+		BranchGroup viewBranch = new BranchGroup();
+		Transform3D viewXfm = new Transform3D();
+		viewXfm.set(new Vector3f(11.0f, 0.0f, 30.0f)); // P O S I Ç Ã O D A C Â M E R A
+		TransformGroup viewXfmGroup = new TransformGroup(viewXfm);
+		ViewPlatform myViewPlatform = new ViewPlatform();
+		PhysicalBody myBody = new PhysicalBody();
+		PhysicalEnvironment myEnvironment = new PhysicalEnvironment();
+		viewXfmGroup.addChild(myViewPlatform);
+		viewBranch.addChild(viewXfmGroup);
+		View myView = new View();
+		myView.addCanvas3D(c);
+		myView.attachViewPlatform(myViewPlatform);
+		myView.setPhysicalBody(myBody);
+		myView.setPhysicalEnvironment(myEnvironment);
+		return viewBranch;
+	}
+
+	/***
+	 * 
+	 * Adicione algumas luzes para que possamos iluminar a cena. Isso adiciona um*
+	 * luz ambiente para trazer o nível de iluminação geral e um direcional* forma
+	 * para mostrar a forma dos objetos na cena.**
+	 * 
+	 * @param b BranchGroup que as luzes devem ser adicionadas.
+	 */
+
+	protected void addLights(BranchGroup b) {
+		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0), 100.0);
+		Color3f lightColour1 = new Color3f(1.0f, 1.0f, 1.0f);
+		Vector3f lightDir1 = new Vector3f(-1.0f, -1.0f, -1.0f);
+		Color3f lightColour2 = new Color3f(1.0f, 1.0f, 1.0f);
+		Vector3f lightDir2 = new Vector3f(1.0f, -1.0f, -1.0f);
+		DirectionalLight light1 = new DirectionalLight(lightColour1, lightDir1);
+		light1.setInfluencingBounds(bounds);
+		DirectionalLight light2 = new DirectionalLight(lightColour2, lightDir2);
+		light2.setInfluencingBounds(bounds);
+		b.addChild(light1);
+		b.addChild(light2);
+	}
+
+	/***
+	 * 
+	 * Isso cria o ramo de conteúdo do nosso gráfico de cena. A raiz das formas*
+	 * fornecido como um parâmetro é ligeiramente inclinado para revelar sua forma
+	 * 3D.isto* também usa a função addLights para adicionar algumas luzes à cena.**
+	 * 
+	 * @param shape Nó que representa a geometria do conteúdo*@return BranchGroup
+	 *              que é a raiz do ramo de conteúdo
+	 */
+
+	protected BranchGroup buildContentBranch(Node shape) {
+		BranchGroup contentBranch = new BranchGroup();
+		Transform3D rotateCube = new Transform3D();
+		rotateCube.set(new AxisAngle4d(2.0, 2.0, 0.2, Math.PI / 4.0));
+		TransformGroup rotationGroup = new TransformGroup(rotateCube);
+		contentBranch.addChild(rotationGroup);
+		rotationGroup.addChild(shape);
+		addLights(contentBranch);
+		return contentBranch;
+	}
+
+	/***
+	 * 
+	 * Isso define as formas usadas na cena.A função usa o utilitário* esfera de
+	 * geometrias,caixa, cone e cilindro para construir uma cena simples.este*
+	 * demonstra o uso de transformações para agrupar e posicionar itens.**@return
+	 * Node que é a raiz da hierarquia de formas.
+	 * 
+	 * @throws ParsingErrorException
+	 * @throws IncorrectFormatException
+	 * @throws FileNotFoundException
+	 */
+
+	protected Node buildShape() {
+
+		// Cria uma raiz para as formas na cena
+		BranchGroup theScene = new BranchGroup();
+		// Cria uma aparência para o chão
+		Appearance groundApp = new Appearance();
+		Color3f groundColour = new Color3f(255, 255, 255);// 0.0f, 0.5f, 0.0f
+		Color3f emissiveColour = new Color3f(0.0f, 0.0f, 0.0f);
+		Color3f specularColour = new Color3f(0.5f, 0.5f, 0.5f);
+		float shininess = 10.0f;
+		groundApp.setMaterial(new Material(groundColour, emissiveColour, groundColour, specularColour, shininess));
+
+		// Cria uma caixa que será o chão
+		Box ground = new Box(11.0f, 0.0f, 8.0f, groundApp); // (x, ? , y)
+		// Cria uma transformação e um grupo de transformação que
+		// irá posicionar o chão
+		Transform3D grndXfm = new Transform3D();
+		grndXfm.set(new Vector3f(12.0f, 0.0f, 1.0f));
+		TransformGroup grndXfmGrp = new TransformGroup(grndXfm);
+		// Adiciona a forma do solo ao grupo
+		grndXfmGrp.addChild(ground);
+		// Adiciona o grupo de solo ao grupo de cenas
+		theScene.addChild(grndXfmGrp);
+
+		/********************** CILINDRO CENTRAL ****************************/
+		// Cria uma aparência para a parede da casa
+		Appearance wallApp = new Appearance();
+		Color3f wallColour = new Color3f(0.5f, 0.5f, 0.5f);
+		wallApp.setMaterial(new Material(wallColour, emissiveColour, wallColour, specularColour, shininess));
+		// Cria um cilindro que é a parede da casa
+		Cylinder walls = new Cylinder(0.7f, 1.0f, Primitive.GENERATE_NORMALS, wallApp);
+		// Cria uma transformação e um grupo de transformação que
+		// irá posicionar o cilindro que á parede da casa
+		Transform3D wallsXfm = new Transform3D();
+		wallsXfm.set(new Vector3f(11.0f, 0.0f, 1.0f));
+		TransformGroup wallsXfmGrp = new TransformGroup(wallsXfm);
+		// Adiciona o cilindro ao grupo de transformação do cilindro
+		wallsXfmGrp.addChild(walls);
+		// Cria um grupo que será a raiz da casa
+		TransformGroup house = new TransformGroup();
+		// Adicione o grupo de transformação do cilindro ao grupo da casa
+		house.addChild(wallsXfmGrp);
+		// Adicione as paredes ao grupo da casa
+		/********************************************************************/
+		/****************** CAIXA DA PONTA ESQUERDA **************************/
+		// Cria outra árvore, só que em forma de caixa - hahahahaha
+		Transform3D tree1Xfm = new Transform3D();
+		tree1Xfm.set(new Vector3f(3.0f, 0.5f, 1.2f));
+		TransformGroup tree1XfmGrp = new TransformGroup(tree1Xfm);
+		Box myBox = new Box(0.3f, 0.2f, 0.3f, wallApp);
+		tree1XfmGrp.addChild(myBox);
+		/********************************************************************/
+		/*************************** PAREDES *********************************/
+		Transform3D paredeSulXfm = new Transform3D();
+		paredeSulXfm.set(new Vector3f(11.7f, 0.8f, 9.4f));
+		TransformGroup paredeSulXfmGrp = new TransformGroup(paredeSulXfm);
+		Box paredeSul = new Box(11.0f, 0.5f, 0.1f, wallApp);
+		paredeSulXfmGrp.addChild(paredeSul);
+
+		Transform3D paredeNorteXfm = new Transform3D();
+		paredeNorteXfm.set(new Vector3f(11.7f, 0.8f, -6.5f));
+		TransformGroup paredeNorteXfmGrp = new TransformGroup(paredeNorteXfm);
+		Box paredeNorte = new Box(11.0f, 0.5f, 0.1f, wallApp);
+		paredeNorteXfmGrp.addChild(paredeNorte);
+
+		Transform3D paredeLesteXfm = new Transform3D();
+		paredeLesteXfm.set(new Vector3f(22.6f, 0.8f, 1.5f));// 22.5f
+		TransformGroup paredeLesteXfmGrp = new TransformGroup(paredeLesteXfm);
+		Box paredeLeste = new Box(0.1f, 0.5f, 8.0f, wallApp);// 0.1f, 0.2f, 7.7f
+		paredeLesteXfmGrp.addChild(paredeLeste);
+
+		Transform3D paredeOesteXfm = new Transform3D();
+		paredeOesteXfm.set(new Vector3f(0.8f, 0.8f, 1.5f));// 11.7f, 0.5f, -6.5f
+		TransformGroup paredeOesteXfmGrp = new TransformGroup(paredeOesteXfm);
+		Box paredeOeste = new Box(0.1f, 0.5f, 8.0f, wallApp);
+		paredeOesteXfmGrp.addChild(paredeOeste);
+
+		/*********************************************************************/
+		/********************* CILINDROS AMARELOS ****************************/
+		// Cria uma aparência para os troncos de árvores
+		Appearance trunkApp = new Appearance();
+		Color3f trunkColour = new Color3f(255, 255, 0);// cor original 0.2f, 0.2f, 0.0f paraamarelo
+		trunkApp.setMaterial(new Material(trunkColour, emissiveColour, trunkColour, specularColour, shininess));
+		// Cria um grupo de transformação e transformação para a árvore
+		Transform3D treeXfm = new Transform3D();
+		treeXfm.set(new Vector3f(7.7f, 0.0f, 0.5f));
+		TransformGroup treeXfmGrp = new TransformGroup(treeXfm);
+		// Cria um cilindro para o tronco da árvore
+		Cylinder myTrunk = new Cylinder(0.15f, 2.0f, trunkApp);// 0.1f, 1.0f
+		// Adiciona o tronco ao grupo de árvores
+		treeXfmGrp.addChild(myTrunk);
+		// Cria a outra árvore
+		Transform3D tree2Xfm = new Transform3D();
+		tree2Xfm.set(new Vector3f(14.7f, 0.0f, 1.0f));
+		TransformGroup tree2XfmGrp = new TransformGroup(tree2Xfm);
+		Cylinder myTrunk2 = new Cylinder(0.15f, 2.0f, trunkApp);
+		tree2XfmGrp.addChild(myTrunk2);
+		// Cria outra árvore
+		Transform3D tree3Xfm = new Transform3D();
+		tree3Xfm.set(new Vector3f(19.0f, 0.0f, -3.5f));
+		TransformGroup tree3XfmGrp = new TransformGroup(tree3Xfm);
+		Cylinder myTrunk3 = new Cylinder(0.15f, 2.0f, trunkApp);
+		tree3XfmGrp.addChild(myTrunk3);
+		// Cria outra árvore
+		Transform3D tree4Xfm = new Transform3D();
+		tree4Xfm.set(new Vector3f(3.5f, 0.0f, -3.5f));
+		TransformGroup tree4XfmGrp = new TransformGroup(tree4Xfm);
+		Cylinder myTrunk4 = new Cylinder(0.15f, 2.0f, trunkApp);
+		tree4XfmGrp.addChild(myTrunk4);// Cria outra árvore
+		Transform3D tree5Xfm = new Transform3D();
+		tree5Xfm.set(new Vector3f(19.0f, 0.0f, 5.5f));
+		TransformGroup tree5XfmGrp = new TransformGroup(tree5Xfm);
+		Cylinder myTrunk5 = new Cylinder(0.15f, 2.0f, trunkApp);
+		tree5XfmGrp.addChild(myTrunk5);
+		// Cria última árvore
+		Transform3D tree6Xfm = new Transform3D();
+		tree6Xfm.set(new Vector3f(3.5f, 0.0f, 5.5f));
+		TransformGroup tree6XfmGrp = new TransformGroup(tree6Xfm);
+		Cylinder myTrunk6 = new Cylinder(0.15f, 2.0f, trunkApp);
+		tree6XfmGrp.addChild(myTrunk6);
+		/*********************************************************************/
+		
+
+		/*********************** TEXTO ****************************************/
+		Shape3D textObject;
+		Transform3D textTranslation;
+		
+	    textObject = new Text2D("posX = " + roboX, new Color3f(1f, 0f, 0f), "Serif", 170, Font.BOLD);
+		textTranslation = new Transform3D();
+		textTranslation.setTranslation(new Vector3f(2f, 0f, -5f));
+		TransformGroup textTranslationGroup = new TransformGroup(textTranslation);
+		textTranslationGroup.addChild(textObject);
+		theScene.addChild(textTranslationGroup);
+
+		textObject = new Text2D("posY = " + roboY, new Color3f(0f, 0f, 1f),
+				"Serif", 170, Font.BOLD);
+		textTranslation = new Transform3D();
+		textTranslation.setTranslation(new Vector3f(2f, .0f, -3f));
+		textTranslationGroup = new TransformGroup(textTranslation);
+		textTranslationGroup.addChild(textObject);
+		theScene.addChild(textTranslationGroup);
+		
+		/*********************************************************************/
+		
+		
+
+		/*********************** ROBO ****************************************/
+		objTrans1 = new TransformGroup(trans);
+		objTrans1.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+		objTrans1.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+		objTrans1.setTransform(trans);
+		trans.setScale(0.7); // Aqui você define o tamanho do robô
+		// carrega o arquivo de objeto
+		Scene scene = null;
+		Shape3D shape = null;
+		// ler as informações de geometria do arquivo de dados
+		ObjectFile objFileloader = new ObjectFile(ObjectFile.RESIZE);
+		try {
+			scene = objFileloader.load("R2D2.obj");
+		} catch (Exception e) {
+			scene = null;
+			System.err.println(e);
+		}
+
+		if (scene == null)
+			System.exit(1);
+
+		// recupera o objeto Shape3D da cena
+		BranchGroup branchGroup = scene.getSceneGroup();
+		shape = (Shape3D) branchGroup.getChild(0);
+		// criar um Appearance e Material
+		Appearance app = new Appearance();
+		Color3f objColor = new Color3f(1.0f, 0.7f, 0.8f);
+		Color3f black = new Color3f(0.0f, 0.0f, 0.0f);
+		app.setMaterial(new Material(objColor, black, objColor, black, 80.0f));
+		// atribui a aparência à Shape
+		shape.setAppearance(app);
+		// conecta o scenegraph
+		objTrans1.addChild(scene.getSceneGroup());
+		/*********************************************************************/
+
+		// Coloque a cena juntos adicionando todos os grupos
+		// para o grupo de cenas
+		theScene.addChild(house);
+		theScene.addChild(treeXfmGrp);
+		theScene.addChild(tree1XfmGrp);
+		theScene.addChild(tree2XfmGrp);
+		theScene.addChild(tree3XfmGrp);
+		theScene.addChild(tree4XfmGrp);
+		theScene.addChild(tree5XfmGrp);
+		theScene.addChild(tree6XfmGrp);
+		theScene.addChild(paredeNorteXfmGrp);
+		theScene.addChild(paredeSulXfmGrp);
+		theScene.addChild(paredeLesteXfmGrp);
+		theScene.addChild(paredeOesteXfmGrp);
+		theScene.addChild(objTrans1);
+		return theScene;
+	}
+
+	/***
+	 * 
+	 * Handles the exit button action to quit the program.
+	 */
+
+	public void actionPerformed(ActionEvent e) {
+		fechar(e);
+		move(e);
+	}
+
+	public void fechar(ActionEvent e) {
+		if (e.getSource() == myButton) {
+			dispose();
+			System.exit(0);
+		}
+
+	}
+
+	public void move(ActionEvent e) {
+		// start timer when button is pressed
+		float velocRobo = 0.6f;
+
+		if (e.getSource() == go) {
+			if (!timer.isRunning()) {
+				timer.start();
+			}
+		} else {
+			if (paraNorte == true) {
+				roboY -= velocRobo;
+				// roboX += velocRobo;
+			}
+			
+			if (paraSul == true && roboY < 9.0f) {
+				roboY += velocRobo;
+			}
+			
+			if (paraOeste == true) {
+				roboX -= velocRobo;
+				// roboY += velocRobo;
+				System.out.println("ENTROU");
+			}
+			
+			if (paraLeste == true && roboX < 22.0f) {
+				roboX += velocRobo;
+				// roboY -=velocRobo;
+			}
+
+			if (roboY >= 8.7f && paraSul == true) { //Batendo na Parede Sul
+				defineDirecao("paraSul");
+			}
+			
+			System.out.println("DEPOIS DA PAREDE SUL --> roboY = " + roboY);
+			System.out.println("DEPOIS DA PAREDE SUL --> paraNorte = " + paraNorte);
+			System.out.println("DEPOIS DA PAREDE SUL --> paraLeste = " + paraLeste);
+			System.out.println("DEPOIS DA PAREDE SUL --> paraOeste = " + paraOeste);
+			System.out.println("DEPOIS DA PAREDE SUL --> paraSul = " + paraSul);
+
+			if (roboX >= 22.0f && paraLeste == true) { //Batendo na Parede Leste
+				defineDirecao("paraLeste");
+			}
+
+			if (roboX <= 1.5f && paraOeste == true) { //Batendo na Parede Oeste
+				defineDirecao("paraOeste");
+			}
+
+			if (roboY <= -6.0f && paraNorte == true) { //Batendo na Parede Norte
+				defineDirecao("paraNorte");
+			}
+
+			System.out.println("roboY = " + roboY);
+			System.out.println("roboX = " + roboX);
+			System.out.println("paraNorte = " + paraNorte);
+			System.out.println("paraLeste = " + paraLeste);
+			System.out.println("paraOeste = " + paraOeste);
+			System.out.println("paraSul = " + paraSul);
+			System.out.println("----------------------------------");
+		}
+
+//		System.out.println("paraNorte = " + paraNorte);
+//		System.out.println("roboY = " + roboY);		
+
+//		roboX += 0.1f;
+
+		trans.setTranslation(new Vector3f(roboX, 0.95f, roboY));
+		objTrans1.setTransform(trans);
+
+	}
+	
+	public void defineDirecao(String direcaoOrigem){
+		
+		String direcaoSorteada = sortearDirecao();
+		
+		while(direcaoSorteada == direcaoOrigem){
+			direcaoSorteada = sortearDirecao();
+		}
+		
+		if (direcaoSorteada == "paraNorte"){
+			paraNorte = true;
+			paraSul = false;
+			paraLeste = false;
+			paraOeste = false;
+			
+		}
+		
+		if (direcaoSorteada == "paraSul"){
+			paraNorte = false;
+			paraSul = true;
+			paraLeste = false;
+			paraOeste = false;
+			
+		}
+		
+		if (direcaoSorteada == "paraLeste"){
+			paraNorte = false;
+			paraSul = false;
+			paraLeste = true;
+			paraOeste = false;
+			
+		}
+		
+		if (direcaoSorteada == "paraOeste"){
+			paraNorte = false;
+			paraSul = false;
+			paraLeste = false;
+			paraOeste = true;
+		}
+		
+		if (direcaoSorteada == "paraNordeste"){
+			paraNorte = true;
+			paraSul = false;
+			paraLeste = true;
+			paraOeste = false;
+		}
+		
+		if (direcaoSorteada == "paraNoroeste"){
+			paraNorte = true;
+			paraSul = false;
+			paraLeste = false;
+			paraOeste = true;
+		}
+		
+		if (direcaoSorteada == "paraSudeste"){
+			paraNorte = false;
+			paraSul = true;
+			paraLeste = true;
+			paraOeste = false;
+		}
+		
+		if (direcaoSorteada == "paraSudoeste"){
+			paraNorte = false;
+			paraSul = true;
+			paraLeste = false;
+			paraOeste = true;
+		}
+		
+		
+	}
+	
+	public String sortearDirecao(){
+		
+		Random random = new Random();
+		int num = 1 + random.nextInt(8);
+		String direcao;
+
+		switch (num) {
+			case 1: direcao = "paraNorte"; 		break;
+			case 2: direcao = "paraSul";   		break;
+			case 3: direcao = "paraLeste"; 		break;
+			case 4: direcao = "paraOeste"; 		break;
+			case 5: direcao = "paraNordeste"; 	break;
+			case 6: direcao = "paraNoroeste"; 	break;
+			case 7: direcao = "paraSudeste"; 	break;
+			case 8: direcao = "paraSudoeste"; 	break;
+			default: direcao = "parar"; 		break;
+		}
+		
+		System.out.println("Direcao definida: " + num);
+		
+		return direcao;
+	}
+
+	public SimpleCombine() {
+		VirtualUniverse myUniverse = new VirtualUniverse();
+		Locale myLocale = new Locale(myUniverse);
+		myLocale.addBranchGraph(buildViewBranch(myCanvas3D));
+		myLocale.addBranchGraph(buildContentBranch(buildShape()));
+		setTitle("SimpleWorld");
+		setSize(1200, 700);// 400 , 400
+		setLayout(new BorderLayout());
+		timer = new Timer(100, this);
+		add("Center", myCanvas3D);
+		add("North", myButton);
+		add("South", go);
+		myButton.addActionListener(this);
+		go.addActionListener(this);
+		setVisible(true);
+	}
+
+	public static void main(String[] args) {
+		SimpleCombine sw = new SimpleCombine();
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+
+	}
+
+}

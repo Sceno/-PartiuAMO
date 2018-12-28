@@ -1,0 +1,326 @@
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JComponent;
+
+public class Main extends JFrame {
+
+	private ImageIcon terreno = new ImageIcon(getClass().
+            getResource("mario_ground.png"));
+	private ImageIcon fundo = new ImageIcon(getClass().
+            getResource("mario_background.png"));
+	private ImageIcon nuvem = new ImageIcon(getClass().
+            getResource("mario_cloud.png"));
+	private ImageIcon tubo = new ImageIcon(getClass().
+            getResource("mario_pipe.png"));
+	private ImageIcon mario = new ImageIcon(getClass().
+            getResource("mario.png"));
+	private ImageIcon coin = new ImageIcon(getClass().
+            getResource("coin.png"));
+	private ImageIcon goomba = new ImageIcon(getClass().
+            getResource("goomba.png"));
+	private ImageIcon marioDown = new ImageIcon(getClass().
+            getResource("marioDown.png"));
+	
+	int qtdCoins = 0;
+	int pxM = 650;
+	int pyM = 395;
+	boolean irParaDireita = true;
+	
+	
+	JLabel lTerreno1 = new JLabel(terreno);
+	JLabel lTerreno2 = new JLabel(terreno);
+	JLabel lTerreno3 = new JLabel(terreno);
+	JLabel lTerreno4 = new JLabel(terreno);
+	JLabel lTerreno5 = new JLabel(terreno);
+	JLabel lTerreno6 = new JLabel(terreno);
+	JLabel lTerreno7 = new JLabel(terreno);
+	JLabel lTerreno8 = new JLabel(terreno);
+	JLabel lFundo1 = new JLabel(fundo);
+	JLabel lFundo2 = new JLabel(fundo);
+	JLabel lFundo3 = new JLabel(fundo);
+	JLabel lFundo4 = new JLabel(fundo);
+	JLabel lNuvem = new JLabel(nuvem);
+	JLabel lTubo = new JLabel(tubo);
+	JLabel lMario = new JLabel(mario);
+	JLabel lCoin1 = new JLabel(coin);
+	JLabel lCoin2 = new JLabel(coin);
+	JLabel lCoin3 = new JLabel(coin);
+	JLabel lCoin4 = new JLabel(coin);
+	JLabel lCoin5 = new JLabel(coin);
+	JLabel lGoomba = new JLabel(goomba);
+	JLabel lMarioDown = new JLabel(marioDown);
+	JLabel lTexto = new JLabel("x" + qtdCoins);
+	JLabel lpxM = new JLabel("pxM = " + pxM);
+	JLabel lpyM = new JLabel("pyM = " + pyM);
+	
+
+	public Main() {
+		editarJanela();
+		editarComponentes();
+		addMovimento();
+		new Movimento().start();
+	}
+	
+	public void editarJanela() {
+		setTitle("Super Mario 2D");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setSize(800, 600);
+		setVisible(true);
+		setLocationRelativeTo(null); //Tela fica centralizada
+		setLayout(null); //Não quer Layout nessa janela
+		add(lNuvem);  add(lMario);  add(lGoomba);  add(lCoin1);
+		add(lCoin2);  add(lCoin3);  add(lCoin4); add(lCoin5); add(lTerreno1); 
+		add(lTerreno2);  add(lTerreno3);  add(lTerreno4); add(lTerreno5);
+		add(lTerreno6);  add(lTerreno7);  add(lTerreno8); add(lTubo);
+		add(lFundo1); add(lFundo2);  add(lFundo3);  add(lFundo4); add(lTexto);  
+		add(lpxM); add(lpyM);
+	}
+	
+	public void editarComponentes() {
+		
+		
+		lTerreno1.setBounds(0, 435, 128, 128);
+		lTerreno2.setBounds(100, 435, 128, 128);
+		lTerreno3.setBounds(200, 435, 128, 128);
+		lTerreno4.setBounds(300, 435, 128, 128);
+		lTerreno5.setBounds(400, 435, 128, 128);
+		lTerreno6.setBounds(500, 435, 128, 128);
+		lTerreno7.setBounds(600, 435, 128, 128);
+		lTerreno8.setBounds(700, 435, 128, 128);
+		lFundo1.setBounds(0, 180, 256, 256);
+		lFundo2.setBounds(240, 180, 256, 256);
+		lFundo3.setBounds(480, 180, 256, 256);
+		lFundo4.setBounds(720, 180, 256, 256);
+		lTubo.setBounds(450, 353, 128, 128);
+		lNuvem.setBounds(190, 0, 256, 256);
+		lMario.setBounds(pxM, pyM, 28, 40);
+		lGoomba.setBounds(0, 405, 32, 30);
+		lCoin1.setBounds(100, 300, 25, 32);
+		lCoin2.setBounds(140, 300, 25, 32);
+		lCoin3.setBounds(360, 300, 25, 32);
+		lCoin4.setBounds(400, 300, 25, 32);
+		lCoin5.setBounds(20,20,25,32);
+		lTexto.setBounds(50,20,50,50);
+		lpxM.setBounds(50,50,100,100);
+		lpyM.setBounds(50,90,100,100);
+	}
+	
+	public void addMovimento() {
+    	addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+				if(e.getKeyCode()==38) { //Ao pressionar para cima
+					pyM = pyM - 10;
+				}
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == 38) { //Ao pressionar para cima
+					//if(pxM != 555)
+						pyM = pyM - 5;
+				}
+				if(e.getKeyCode() == 40) { //Ao pressionar para baixo
+					//if(pyM <= 390) //Só desce até o chão
+						pyM = pyM + 5;
+				}
+				if(e.getKeyCode() == 37) { //Ao pressionar para esquerda
+					if((pyM >= 325)){
+						if(!(pxM <= 550 && pxM >= 450)){ //Não passa por dentro do tubo
+							pxM = pxM - 5;
+						}
+					}
+				}
+				if(e.getKeyCode() == 39) { //Ao pressionar para direita
+					if(pyM <= 450)
+					pxM = pxM + 5;
+				}
+				
+				lMario.setBounds(pxM, pyM, 28, 40);
+			}
+    	});
+    	
+	}
+	
+	/*Para poder fazer com que um objeto se mova automaticamente eu preciso criar mais um processo que faça isso.
+	 *Para isso eu preciso criar uma Thread. Por isso eu criei uma classe com herdando da classe 'Thread'.
+	 *Toda Thread precisa de um método 'public void run()'.
+	 *O método sleep causa um warning que exige o tratamento com Try/Catch
+	*/
+	public class Movimento extends Thread{
+		
+		boolean colisaoOcorridaCoin1 = false;
+		boolean colisaoOcorridaCoin2 = false;
+		boolean colisaoOcorridaCoin3 = false;
+		boolean colisaoOcorridaCoin4 = false; /*É necessário verificar se a colisão já foi ocorrida uma vez porque, caso
+			 								   * essa verificação não seja feita, enquanto um boneco estiver passando
+			                                   * pelo outro, serão contadas várias colisões e serão adicionadas várias 
+	                                   		   * moedas na contagem de moedas de Mario. */
+		public void run() {
+			while(true) {
+				try {
+					sleep(20);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				lpxM.setText("pxM = " + pxM);
+				lpyM.setText("pyM = " + pyM);
+				
+				if(irParaDireita == true) {
+					lGoomba.setBounds(lGoomba.getX() + 1, 405, 32, 30);
+				}else {
+					lGoomba.setBounds(lGoomba.getX() - 1, 405, 32, 30);
+				}
+				
+				
+				if(lGoomba.getX() == 440) {
+					irParaDireita = false;
+				}else if(lGoomba.getX() == 0) {
+					irParaDireita = true;
+				}
+				
+				
+					
+				if(verificaColisao(lGoomba, lMario) == true){ 
+					lMario.setIcon(marioDown);
+				}	
+				
+				if(verificaColisao(lCoin1, lMario) == true){
+					if(colisaoOcorridaCoin1 == false) {
+						lCoin1.setVisible(false);
+						qtdCoins = qtdCoins + 1;
+						lTexto.setText("x" + qtdCoins);
+						colisaoOcorridaCoin1 = true;
+					}
+				}
+				else if(verificaColisao(lCoin2, lMario) == true){
+					if(colisaoOcorridaCoin2 == false) {
+						lCoin2.setVisible(false);
+						qtdCoins = qtdCoins + 1;
+						lTexto.setText("x" + qtdCoins);
+						colisaoOcorridaCoin2 = true;
+					}
+				}else if(verificaColisao(lCoin3, lMario) == true){
+					if(colisaoOcorridaCoin3 == false) {
+						lCoin3.setVisible(false);
+						qtdCoins = qtdCoins + 1;
+						lTexto.setText("x" + qtdCoins);
+						colisaoOcorridaCoin3 = true;
+					}
+				}else if(verificaColisao(lCoin4, lMario) == true){
+					if(colisaoOcorridaCoin4 == false) {
+						lCoin4.setVisible(false);
+						qtdCoins = qtdCoins + 1;
+						lTexto.setText("x" + qtdCoins);
+						colisaoOcorridaCoin4 = true;
+					}
+				}
+				
+				
+				
+//				if(verificaColisao(lCoin1, lMario) == true){
+//					if(colisaoOcorrida == false) {
+//						lTexto.setText("x" + qtdCoins++);
+//						colisaoOcorrida = true;
+//					}
+//				}if(verificaColisao(lCoin1, lMario) == false){
+//					colisaoOcorrida = false;
+//				}
+//				
+//				
+//				if(verificaColisao(lCoin2, lMario) == true){
+//					if(colisaoOcorrida == false) {
+//						lTexto.setText("x" + qtdCoins++);
+//						colisaoOcorrida = true;
+//					}
+//				}if(verificaColisao(lCoin2, lMario) == false){
+//					colisaoOcorrida = false;
+//				}
+//				
+//				
+//				if(verificaColisao(lCoin3, lMario) == true){
+//					if(colisaoOcorrida == false) {
+//						lTexto.setText("x" + qtdCoins++);
+//						colisaoOcorrida = true;
+//					}
+//				}if(verificaColisao(lCoin3, lMario) == false){
+//					colisaoOcorrida = false;
+//				}
+//				
+//				
+//				if(verificaColisao(lCoin4, lMario) == true){
+//					if(colisaoOcorrida == false) {
+//						lTexto.setText("x" + qtdCoins++);
+//						colisaoOcorrida = true;
+//					}
+//				}
+//				if(verificaColisao(lCoin4, lMario) == false){
+//					colisaoOcorrida = false;
+//				}
+			}
+		}
+	}
+
+	public boolean verificaColisao(Component objetoA, Component objetoB) {
+		int objetoA_X = objetoA.getX();
+		int objetoA_Y = objetoA.getY();
+		int ladoDireitoObjetoA = objetoA_X + objetoA.getWidth();
+		int ladoEsquerdoObjetoA = objetoA_X;
+		int ladoBaixoObjetoA = objetoA_Y + objetoA.getHeight();
+		int ladoCimaObjetoA = objetoA_Y;
+		
+		int objetoB_X = objetoB.getX();
+		int objetoB_Y = objetoB.getY();
+		int ladoDireitoObjetoB = objetoB_X + objetoB.getWidth();
+		int ladoEsquerdoObjetoB= objetoB_X;
+		int ladoBaixoObjetoB = objetoB_Y + objetoB.getHeight();
+		int ladoCimaObjetoB = objetoB_Y;
+		
+		boolean colisao = false;
+		
+		boolean cDireita=false;
+		boolean cCima=false;
+		boolean cBaixo=false;
+		boolean cEsquerda=false;
+		
+		if(ladoDireitoObjetoA >= ladoEsquerdoObjetoB) {
+			cDireita=true;
+		}
+		if(ladoCimaObjetoA<=ladoBaixoObjetoB) {
+			cCima=true;
+		}
+		if(ladoBaixoObjetoA>=ladoCimaObjetoB) {
+			cBaixo=true;
+		}
+		if(ladoEsquerdoObjetoA<=ladoDireitoObjetoB) {
+			cEsquerda=true;
+		}
+		
+		if(cDireita && cEsquerda && cBaixo && cCima) {
+			colisao = true;
+		}
+			
+		return colisao;
+	}
+	
+
+	public static void main(String[] args) {
+		new Main();
+	}
+
+}
