@@ -1,0 +1,30 @@
+  <?php
+    $conecta = mysqli_connect("localhost","root","","andes");
+    if ( mysqli_connect_errno()  ) {
+        die("Conexao falhou: " . mysqli_connect_errno());
+    }
+
+    if(isset($_POST["nometransportadora"])) {
+        $nome       = utf8_decode($_POST["nometransportadora"]);
+        $endereco   = utf8_decode($_POST["endereco"]);
+        $cidade     = utf8_decode($_POST["cidade"]);
+        $estado     = $_POST["estados"];
+        
+        $inserir    = "INSERT INTO transportadora ";
+        $inserir    .= "(nometransportadora,endereco,cidade,estadoID) ";
+        $inserir    .= "VALUES ";
+        $inserir    .= "('$nome','$endereco','$cidade', $estado)";
+        
+        $query = mysqli_query($conecta, $inserir);
+        
+        if (!$query){
+            $mensagem = "ERRO AO INSERIR TRANSPORTAORA.";
+        }else{
+            $mensagem = "TRANSPORTADORA INSERIDA COM SUCESSO!";
+        }
+        
+    }
+    
+    echo $mensagem;
+    
+?>
