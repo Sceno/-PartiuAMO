@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>EXERCÍCIO AMO</title>
+        <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container-fluid">
+            <form class="form-horizontal" action="salvarNoBanco.php" method="post">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Nome</label>
+                    <div class="col-xs-10 col-sm-10">
+                        <input class="form-control" type="text" name="nome">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">CPF</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" type=text name="cpf"> 
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">RG</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" type="text" name="rg">
+                    </div>    
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">CEP</label>
+                    <div class="col-sm-10">
+                            <input class="form-control" type="text" name="cep">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Endereço</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" type="text" name="endereco">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Telefone</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" type="text" name="telefone">
+                    </div>
+                </div>
+                <input id="botao" class="btn btn-success float-left" type="submit" name="botao" value="Enviar">
+                </form>
+        </div>
+        <script src="../JQuery/jquery-3.3.1.min.js"></script>
+        <script>
+            var form;
+            $('#botao').submit(function(){
+                
+                form = $(this).val();
+                
+                $.ajax({
+                    type: "POST",
+                    url: "salvarNoBanco.php",
+                    data: form,
+                    async: false 
+                });
+            })
+        </script>
+    </body>
+</html>
